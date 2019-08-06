@@ -66,10 +66,10 @@ var obj = {
   }
 };
 var elem = document.getElementById('book-search-results');
-elem.addEventListener('click', obj.show);
-elem.addEventListener('click', obj.show.bind(obj));
+elem.addEventListener('click', obj.show);  // this指向elem
+elem.addEventListener('click', obj.show.bind(obj));  // this指向obj
 elem.addEventListener('click', function () {    
-  obj.show();
+  obj.show(); // this指向obj
 })
 ```
 ### 2. 作用域
@@ -78,24 +78,24 @@ elem.addEventListener('click', function () {
 var person = 1;
 function showPerson() {    
   var person = 2;    
-  console.log(person);
+  console.log(person);   // 2
 }
-showPerson();
+showPerson(); 
 ```
 #### 2.2
 ```
 var person = 1;
 function showPerson() {    
-  console.log(person);    
+  console.log(person);  // undefined 
   var person = 2;
 }
-showPerson();
+showPerson();  
 ```
 #### 2.3
 ```
 var person = 1;
 function showPerson() {    
-  console.log(person);
+  console.log(person);  // 函数person
   var person = 2;    
   function person() {}
 }
@@ -105,7 +105,7 @@ showPerson();
 ```
 var person = 1;
 function showPerson() {
-  console.log(person);    
+  console.log(person);  // 函数person  
   function person() {}    
   var person = 2;
 }
@@ -114,22 +114,22 @@ showPerson();
 #### 2.5
 ```
 for(var i = 0; i < 10; i++) {    
-  console.log(i);  
+  console.log(i);    // 0,1,2,3,4,5,6,7,8,9
 }
 for(var i = 0; i < 10; i++) {    
   setTimeout(function(){        
-    console.log(i);      
-  }, 0); 
+    console.log(i);    // 10,10,10,10,10,10,10,10,10,10  
+  }, 0);               // 解析：setTimeout会让所有的打印语句都放在浏览器的任务队列，待for循环执行完成后才开始执行，此时变量i的值为10
 }
 for(var i = 0; i < 10; i++) {    
   (function(i){        
     setTimeout(function(){            
-      console.log(i);          
-    }, 0)    
+      console.log(i);   // 0,1,2,3,4,5,6,7,8,9       
+    }, 0)               // 解析：立即执行函数，会创建局部作用域，将变量i每次循环的值传入，执行会打印出i每次循环的值
   })(i); 
 }
 for(let i = 0; i < 10; i++) {    
-  console.log(i);  
+  console.log(i);   // 0,1,2,3,4,5,6,7,8,9 
 }
 ```
 ### 3. 面向对象
@@ -140,7 +140,7 @@ function Person() {
   return {};
 }
 var person = new Person();
-console.log('name:', person.name);  // 'name:undefined'
+console.log('name:', person.name);  // 'name:undefined' 解析：构造函数模式会优先返回return值，即返回空对象
 ```
 #### 3.2
 ```
@@ -153,7 +153,7 @@ Person.prototype = {
   }
 };
 var person = new Person();
-person.show();
+person.show();   // 'name is: 1' 
 ```
 #### 3.3
 ```
@@ -164,12 +164,13 @@ Person.prototype = {
   name: 2,    
   show: function () {        
     console.log('name is:', this.name);    
-  }};
-  var person = new Person();
-  Person.prototype.show = function () {    
-    console.log('new show');
-  };
-person.show()
+  }
+};
+var person = new Person();
+Person.prototype.show = function () {    
+  console.log('new show');
+};
+person.show(); // 'new show' 解析：更改原型上的show方法，实例上的方法也会相应更改
 ```
 #### 3.4
 ```
@@ -187,8 +188,8 @@ var person2 = new Person();
 person.show = function () {    
   console.log('new show');
 };
-person2.show();
-person.show();
+person2.show();  // 'name is: 1' 解析：person2实例上没有show方法，则会往上找，然后执行原型的show方法
+person.show();  // 'new show' 解析：person实例添加show方法，则执行时会优先执行自身的show方法
 ```
 ### 4. 综合题
 ```
@@ -201,8 +202,6 @@ Person.prototype = {
     console.log('name is:', this.name);    
   }
 };
-Person.prototype.show();
-(new Person()).show();
+Person.prototype.show();  // 'name is: 2'  解析：show为原型对象上的方法，直接调用原型对象.show，此时this指向原型对象
+(new Person()).show();  // 'name is: 1' 解析：this指向Person的实例
 ```
-
-
