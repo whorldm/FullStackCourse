@@ -56,7 +56,12 @@ var newobj = new (obj.show.bind(obj))(); // this指向newObj
 ```
 #### 1.6
 ```
-
+var obj = {
+  show: function () {
+    console.log('this:', this);
+  }
+};
+var newobj = new (obj.show.bind(obj))();  // this指向newObj
 ```
 #### 1.7
 ```
@@ -66,10 +71,10 @@ var obj = {
   }
 };
 var elem = document.getElementById('book-search-results');
-elem.addEventListener('click', obj.show);  // this指向elem
-elem.addEventListener('click', obj.show.bind(obj));  // this指向obj
+elem.addEventListener('click', obj.show);   // this指向elem
+elem.addEventListener('click', obj.show.bind(obj));   // this指向obj
 elem.addEventListener('click', function () {    
-  obj.show(); // this指向obj
+  obj.show();  // this指向obj
 })
 ```
 ### 2. 作用域
@@ -86,7 +91,7 @@ showPerson();
 ```
 var person = 1;
 function showPerson() {    
-  console.log(person);  // undefined 
+  console.log(person);  // undefined  解析：变量声明，默认值为undefined 
   var person = 2;
 }
 showPerson();  
@@ -119,7 +124,7 @@ for(var i = 0; i < 10; i++) {
 for(var i = 0; i < 10; i++) {    
   setTimeout(function(){        
     console.log(i);    // 10,10,10,10,10,10,10,10,10,10  
-  }, 0);               // 解析：setTimeout会让所有的打印语句都放在浏览器的任务队列，待for循环执行完成后才开始执行，此时变量i的值为10
+  }, 0);               // 解析：setTimeout会让打印语句放在任务队列，待for循环执行完成后才开始执行，此时变量i的值为10
 }
 for(var i = 0; i < 10; i++) {    
   (function(i){        
@@ -140,7 +145,7 @@ function Person() {
   return {};
 }
 var person = new Person();
-console.log('name:', person.name);  // 'name:undefined' 解析：构造函数模式会优先返回return值，即返回空对象
+console.log('name:', person.name);  // 'name:undefined'  解析：构造函数模式会优先返回return值，即返回空对象
 ```
 #### 3.2
 ```
@@ -188,7 +193,7 @@ var person2 = new Person();
 person.show = function () {    
   console.log('new show');
 };
-person2.show();  // 'name is: 1' 解析：person2实例上没有show方法，则会往上找，然后执行原型的show方法
+person2.show();  // 'name is: 1' 解析：person2实例上没有show方法，则会沿着原型链上找，然后执行原型的show方法
 person.show();  // 'new show' 解析：person实例添加show方法，则执行时会优先执行自身的show方法
 ```
 ### 4. 综合题
