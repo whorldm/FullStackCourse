@@ -3,11 +3,15 @@
  * 曹雅琴
  */
 (function () {
-    const HERO_WIDTH = 50;  // hero的宽度
-    const HERO_HEIGHT = 50; // hero的高度
+    const HERO_WIDTH = 40;  // hero的宽度
+    const HERO_HEIGHT = 40; // hero的高度
     const HERO_SPEED = 10; // hero的移动速度
-    const MONSTER_WIDTH = 60; // monster的宽度
-    const MONSTER_HRIGHT = 60; // monster的高度
+    const HERO_BLOOD = 200; // 英雄的血量
+    const HERO_ATTACK = 50; // 英雄的攻击值
+    const MONSTER_WIDTH = 40; // monster的宽度
+    const MONSTER_HRIGHT = 40; // monster的高度
+    const MONSTER_BLOOD = 200; // monster的血量
+    const MONSTER_ATTACK = 10; // monster的攻击值
     const KEY_LEFT = 37;
     const KEY_UP = 38;
     const KEY_RIGHT = 39;
@@ -41,58 +45,16 @@
     }
 
     function drawImg(context, heroImg, monsterImg) {
-        var draw = function () {
-            this.context.drawImage(
-                this.img,
-                this.imgPos.x,
-                this.imgPos.y,
-                this.imgPos.width,
-                this.imgPos.height,
-                this.rect.x,
-                this.rect.y,
-                this.rect.width,
-                this.rect.height
-            );
-        }
-
-        var hero = {
-            img: heroImg,
-            context: context,
-            imgPos: {
-                x: 0,
-                y: 0,
-                width: 32,
-                height: 32
-            },
-            rect: {
-                x: 20,
-                y: 20,
-                width: HERO_WIDTH,
-                height: HERO_HEIGHT
-            },
-            draw: draw
-        }
-
-        var monster = {
-            img: monsterImg,
-            context: context,
-            imgPos: {
-                x: 858,
-                y: 529,
-                width: 32,
-                height: 32
-            },
-            rect: {
-                x: 100,
-                y: 100,
-                width: MONSTER_WIDTH,
-                height: MONSTER_HRIGHT
-            },
-            draw: draw
-        }
+        var hero = new SuperHero(context, heroImg, { x: 20, y: 20 })
+        var blackMonster = new SuperMonster(context, monsterImg, { x: 100, y: 100 });
+        var redMonster = new RedMonster(context, monsterImg, { x: 200, y: 200 });
+        var monsterList = [];
 
         hero.draw();
-        monster.draw();
+        blackMonster.draw();
+        redMonster.draw();
+        monsterList.push(blackMonster);
+        monsterList.push(redMonster);
 
         document.onkeydown = function (event) {
             const e = event || window.event;
@@ -104,101 +66,240 @@
                 width: hero.rect.width,
                 height: hero.rect.height
             }
-            // 是否需要重绘的标志量
-            let needToRedraw = false;
+
             switch (keyCode) {
                 case KEY_LEFT:
-                    if (hero.rect.x <= 0) {
-                        alert('要出界了啦~~~')
-                    } else if (isCrash(hero, monster, KEY_LEFT)) {
-                        alert('要撞上大魔王啦！！！')
-                    } else {
-                        hero.rect.x -= HERO_SPEED;
-                        needToRedraw = true;
+                    hero.rect.x -= HERO_SPEED;
+                    if (hero.isOverBorder()) {
+                        hero.rect.x += HERO_SPEED;
+                        console.log('即将越界')
+                        return;
+                    }
+                    if (hero.isCrashMonster(monsterList)) {
+                        hero.rect.x += HERO_SPEED;
+                        return;
                     }
                     break;
                 case KEY_UP:
-                    if (hero.rect.y <= 0) {
-                        alert('要出界了啦~~~')
-                    } else if (isCrash(hero, monster, KEY_UP)) {
-                        alert('要撞上大魔王啦！！！')
-                    } else {
-                        hero.rect.y -= HERO_SPEED;
-                        needToRedraw = true;
+                    hero.rect.y -= HERO_SPEED;
+                    if (hero.isOverBorder()) {
+                        hero.rect.y += HERO_SPEED;
+                        console.log('即将越界')
+                        return;
+                    }
+                    if (hero.isCrashMonster(monsterList)) {
+                        hero.rect.y += HERO_SPEED;
+                        return;
                     }
                     break;
                 case KEY_RIGHT:
-                    if (hero.rect.x >= (500 - HERO_WIDTH)) {
-                        alert('要出界了啦~~~')
-                    } else if (isCrash(hero, monster, KEY_RIGHT)) {
-                        alert('要撞上大魔王啦！！！')
-                    } else {
-                        hero.rect.x += HERO_SPEED;
-                        needToRedraw = true;
+                    hero.rect.x += HERO_SPEED;
+                    if (hero.isOverBorder()) {
+                        hero.rect.x -= HERO_SPEED;
+                        console.log('即将越界')
+                        return;
+                    }
+                    if (hero.isCrashMonster(monsterList)) {
+                        hero.rect.x -= HERO_SPEED;
+                        return;
                     }
                     break;
                 case KEY_DOWN:
-                    if (hero.rect.y >= (300 - HERO_HEIGHT)) {
-                        alert('要出界了啦~~~')
-                    } else if (isCrash(hero, monster, KEY_DOWN)) {
-                        alert('要撞上大魔王啦！！！')
-                    } else {
-                        hero.rect.y += HERO_SPEED;
-                        needToRedraw = true;
+                    hero.rect.y += HERO_SPEED;
+                    if (hero.isOverBorder()) {
+                        hero.rect.y -= HERO_SPEED;
+                        console.log('即将越界')
+                        return;
+                    }
+                    if (hero.isCrashMonster(monsterList)) {
+                        hero.rect.y -= HERO_SPEED;
+                        return;
                     }
                     break;
             }
-
-            if (needToRedraw) {
-                hero.context.clearRect(
-                    tempPos.x,
-                    tempPos.y,
-                    tempPos.width,
-                    tempPos.height
-                );
-                hero.draw();
-            }
+            // 重绘英雄
+            hero.redraw(tempPos);
         }
-    }
-
-    /**
-     * @param  {Object} hero
-     * @param  {Object} monster
-     * @param  {Number} direction
-     */
-    function isCrash(hero, monster, direction) {
-        let isAround = false;
-        // 判断各方向对应坐标轴上是否会碰撞
-        if (direction == KEY_LEFT) {
-            isAround = hero.rect.x > monster.rect.x && hero.rect.x - monster.rect.x <= MONSTER_WIDTH
-        }
-        if (direction == KEY_UP) {
-            isAround = hero.rect.y > monster.rect.y && hero.rect.y - monster.rect.y <= MONSTER_HRIGHT
-        }
-        if (direction == KEY_RIGHT) {
-            isAround = hero.rect.x < monster.rect.x && monster.rect.x - hero.rect.x <= HERO_WIDTH
-        }
-        if (direction == KEY_DOWN) {
-            isAround = hero.rect.y < monster.rect.y && monster.rect.y - hero.rect.y <= HERO_HEIGHT
-        }
-
-        if (!isAround) {
-            return isAround;
-        }
-
-        // 判断各方向垂直坐标轴上是否会碰撞
-        if (direction == KEY_LEFT || direction == KEY_RIGHT) {
-            let temp = hero.rect.y > monster.rect.y ? (hero.rect.y - monster.rect.y < MONSTER_HRIGHT) : (monster.rect.y - hero.rect.y < HERO_HEIGHT)
-            isAround = temp && isAround;
-        } else if (direction == KEY_UP || direction == KEY_DOWN) {
-            let temp = hero.rect.x > monster.rect.x ? (hero.rect.x - monster.rect.x < MONSTER_WIDTH) : (monster.rect.x - hero.rect.x < HERO_WIDTH)
-            isAround = temp && isAround;
-        }
-        return isAround;
     }
 
     var manager = prepare();
     manager.getImgSource(function (context, heroImg, monsterImg) {
         drawImg(context, heroImg, monsterImg)
     });
+
+    /**
+     * 原型方法
+     */
+    function draw() {
+        this.context.drawImage(
+            this.img,
+            this.imgPos.x,
+            this.imgPos.y,
+            this.imgPos.width,
+            this.imgPos.height,
+            this.rect.x,
+            this.rect.y,
+            this.rect.width,
+            this.rect.height
+        );
+        let str = "";
+        if (this.bloodValue) {
+            str = "血量:" + this.bloodValue;
+        } else {
+            str = "攻击:" + this.attackValue
+        }
+        this.context.strokeText(str, this.rect.x, this.rect.y - 5);
+        this.context.fontSize = "10px";
+    }
+    function redraw(oldPos) {
+        this.context.clearRect(
+            oldPos.x,
+            oldPos.y,
+            oldPos.width,
+            oldPos.height
+        );
+        // 清除文字
+        this.context.clearRect(
+            oldPos.x - 5,
+            oldPos.y - 15,
+            40,
+            15
+        )
+        this.draw();
+    }
+    // 是否越过边界
+    function isOverBorder() {
+        const maxWidth = 500 - this.rect.width;
+        const maxHeight = 300 - this.rect.height;
+        if (this.rect.x < 0 || this.rect.y < 0 || this.rect.y > maxHeight || this.rect.x > maxWidth) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    // 英雄与魔王是否相撞
+    function isCrashMonster(monsters) {
+        if (!monsters || monsters.length <= 0) {
+            return false;
+        }
+        const hero_left = this.rect.x;
+        const hero_top = this.rect.y;
+        const hero_right = this.rect.x + this.rect.width;
+        const hero_bottom = this.rect.y + this.rect.height;
+
+        let wouldCrash = false;
+        for (let i = 0; i < monsters.length; i++) {
+            if(monsters[i].bloodValue <= 0) {
+                continue;
+            }
+            let monster_left = monsters[i].rect.x;
+            let monster_top = monsters[i].rect.y;
+            let monster_right = monsters[i].rect.x + monsters[i].rect.width;
+            let monster_bottom = monsters[i].rect.y + monsters[i].rect.height;
+            if (hero_bottom <= monster_top || hero_left >= monster_right || hero_top >= monster_bottom || hero_right <= monster_left) {
+                wouldCrash = false;
+            } else {
+                wouldCrash = true;
+                this.attack(monsters[i]);
+                break;
+            }
+        }   
+        return wouldCrash;
+        // const monster_left = monster.rect.x;
+        // const monster_top = monster.rect.y;
+        // const monster_right = monster.rect.x + monster.rect.width;
+        // const monster_bottom = monster.rect.y + monster.rect.height;
+
+        // let wouldCrash = true;
+        // if (hero_bottom <= monster_top || hero_left >= monster_right || hero_top >= monster_bottom || hero_right <= monster_left) {
+        //     wouldCrash = false;
+        // }
+        // return wouldCrash;
+    }
+    // 攻击魔王
+    function attackMonster(monster) {
+        monster.bloodValue -= this.attackValue;
+        monster.context.clearRect(
+            monster.rect.x - 5,
+            monster.rect.y - 15,
+            40,
+            15
+        )
+        monster.context.strokeText("血量:" + monster.bloodValue, monster.rect.x, monster.rect.y - 5);
+        monster.context.fontSize = "10px";
+        if (monster.bloodValue <= 0) {
+            monster.context.clearRect(
+                monster.rect.x,
+                monster.rect.y,
+                monster.rect.width,
+                monster.rect.height
+            )
+        }
+    }
+
+    /**
+     * 英雄类
+     */
+    function SuperHero(context, imgUrl, initPos) {
+        this.context = context;
+        this.img = imgUrl;
+        // this.bloodValue = HERO_BLOOD;
+        this.attackValue = HERO_ATTACK;
+        this.imgPos = {
+            x: 0,
+            y: 0,
+            width: 32,
+            height: 32
+        };
+        this.rect = {
+            x: initPos.x,
+            y: initPos.y,
+            width: HERO_WIDTH,
+            height: HERO_HEIGHT
+        };
+    }
+    SuperHero.prototype.draw = draw;
+    SuperHero.prototype.redraw = redraw;
+    SuperHero.prototype.attack = attackMonster;
+    SuperHero.prototype.isOverBorder = isOverBorder;
+    SuperHero.prototype.isCrashMonster = isCrashMonster;
+
+    /**
+     * 魔王基类(黑色)
+     */
+    function SuperMonster(context, imgUrl, initPos) {
+        this.context = context;
+        this.img = imgUrl;
+        this.bloodValue = MONSTER_BLOOD;
+        // this.attackValue = MONSTER_ATTACK;
+        this.imgPos = {
+            x: 858,
+            y: 529,
+            width: 32,
+            height: 32
+        };
+        this.rect = {
+            x: initPos.x,
+            y: initPos.y,
+            width: MONSTER_WIDTH,
+            height: MONSTER_HRIGHT
+        };
+    }
+    SuperMonster.prototype.draw = draw;
+    SuperMonster.prototype.redraw = redraw;
+    SuperMonster.prototype.isOverBorder = isOverBorder;
+
+    /**
+     * 红魔王类
+     */
+    function RedMonster(context, imgUrl, initPos) {
+        SuperMonster.call(this, context, imgUrl, initPos);
+        this.imgPos = {
+            x: 858,
+            y: 462,
+            width: 32,
+            height: 32
+        };
+    }
+    RedMonster.prototype = Object.create(SuperMonster.prototype);
 })()
