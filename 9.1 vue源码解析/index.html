@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+    <head></head>
+    <body>
+        <div id="app"></div>
+    </body>
+    <!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue"></script> -->
+    <script type="text/javascript">
+
+        class Dep {
+            constructor() {
+                // 都有谁，监听我了
+                this.subs = [];
+            }
+
+            notify() {
+                const subs = this.subs.slice(); // 拷贝数组
+                for(let i = 0, len = this.subs.length; i < len; i++) {
+                    this.subs[i].update();
+                }
+            }
+
+            addSub(sub) {
+                if(this.subs.indexOf(sub) === -1) {
+                    this.subs.push(sub);
+                }
+            }
+
+            addDepend () {
+                Dep.targets[Dep.targets.length - 1].addDep(this)
+            }
+        }
+
+        Dep.targets = []; // 静态变量
+        function pushTarget(instance) {
+            // 接下来发生的所有依赖都算在instance身上
+            Dep.targets.push(instance);
+        }
+
+        function popTarget() {
+            return Dep.targets.pop();
+        }
+
+        // 动态监测render函数里那些属性是被调用了的
+        class Watcher {
+            constructor(getter, callback) {
+                this.callback = callback;
+                this.getter = getter;
+                this.value = this.get();
+            }
+
+            get() {
+                // 记录一下自己
+                pushTarget(this);
+                // getter()即我们编写的render函数
+                // 执行render则会使用点操作符调用相应所依赖的属性，即调用属性的get方法
+                // 所以我们可以在get方法里记录当前render的依赖
+                let value = this.getter();  
+                popTarget();
+                return value;
+            }
+
+            addDep(dep) {
+                dep.addSub(this);
+            }
+
+            // 刷新事件可通过重新调用get方法实现
+            update() {
+                let newVal = this.get();
+                this.value = newVal;
+            }
+        }
+
+        function proxy(target, data, key) {
+            Object.defineProperty(target, key, {
+                get() {
+                    return data[key];
+                },
+                set(newVal) {
+                    console.log('set!!!!!', newVal);
+                    data[key] = newVal;
+                }
+            })
+        }
+
+        class Observer {
+            constructor(obj) {
+                this.walk(obj);
+            }
+
+            walk(obj) {
+                Object.keys(obj).forEach(key => {
+                    if(typeof obj[key] === 'object' && obj[key] != null) {
+                        this.walk(obj[key]);
+                    }
+                    defineReactive(obj, key, obj[key]);
+                })
+                return obj;
+            }
+
+        }
+
+        function defineReactive(target, key, initVal) {
+
+            const dep = new Dep();
+            
+            Object.defineProperty(target, key, {
+                get() {
+                    // 添加到window.watcher.depdencies.add(this)
+                    // 有人调用get，就将自己加到全局候着的watcher上，即targets身上
+                    if(Dep.targets.length > 0) {
+                        dep.addDepend();
+                    }
+                    return initVal;
+                },
+                set(newVal) {
+                    initVal = newVal;
+                    // 如果有人，则通知所有监听改属性的用例刷新
+                    dep.notify();
+                    // console.log('set-cruit!!!!!', newVal)
+                }
+            })
+        }
+
+        class Vue {
+            constructor(options) {
+                this.$el = document.querySelector(options.el);
+                this._data = options.data && options.data();
+                new Observer(this._data);
+                this.render = options.render;
+                for(let key in this._data) {
+                    proxy(this, this._data, key)
+                }
+
+                // this._update();
+                new Watcher(() => {
+                    console.log('update!!!!!')
+                    this._update();
+                }, () => {
+                    console.log('callback!!!!')
+                })
+
+            }
+
+            _createElement(tagName, attributes, children) {
+                const tag = document.createElement(tagName);
+                const {attrs = {}} = attributes;
+                for(let attrName in attrs) {
+                    tag.setAttribute(attrName, attrs[attrName])
+                }
+                if(Object.prototype.toString.call(children) !== '[object Array]') {
+                    let child = document.createTextNode(children);
+                    tag.appendChild(child);
+                } else {
+                    children.forEach(child => {
+                        tag.appendChild(child);
+                    });
+                }
+                return tag;
+            }
+
+            _update() {
+                const $root = this.render(this._createElement);
+                api.replaceChild(this.$el, $root);
+                this.$el = $root;
+            }
+        }
+
+        const api = {
+            replaceChild(oldElemnt, newElement) {
+                return oldElemnt.parentElement.replaceChild(newElement, oldElemnt);
+            }
+        }
+
+
+        window.app = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    price: 27,
+                    test: 'test',
+                    infos: {
+                        title: '猪肉的价格'
+                    }
+                }
+            },
+            render(createElment) {
+                return createElment('div', {
+                    attrs: {
+                        title: this.infos.title
+                    }
+                }, [
+                    createElment('span', {}, this.price)
+                ])
+            }
+        })
+    </script>
+</html>
