@@ -15,6 +15,17 @@ const router = new VueRouter({
     routes
 });
 
+router.beforeEach((to, from, next) => {
+    if(!/uid/.test(document.cookie) && to.path !== "/login") {
+        next({
+            path: "/login",
+            query: { back: to.path }
+        });
+    } else {
+        next();
+    }
+})
+
 const vm = new Vue({
     el: "#app",
     router,
