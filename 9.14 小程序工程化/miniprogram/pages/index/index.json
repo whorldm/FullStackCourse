@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "singlePic": "/components/items/single-pic/single-pic",
+    "multiplePic": "/components/items/multiple-pic/multiple-pic"
+  }
+}

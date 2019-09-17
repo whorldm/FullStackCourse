@@ -1,0 +1,17 @@
+<!--index.wxml-->
+<template name="singlePic">
+  <singlePic data="{{data}}"></singlePic>
+</template>
+<template name="multiplePic">
+  <multiplePic data="{{data}}"></multiplePic>
+</template>
+
+<view class='container'>
+  <view
+    wx:for="{{list}}"
+    wx:for-item="item"
+    wx:key="{{index}}"
+  >
+    <template is="{{item.type}}" data="{{...item}}"></template>
+  </view>
+</view>
