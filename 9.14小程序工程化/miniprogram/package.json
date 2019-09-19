@@ -1,0 +1,14 @@
+{
+  "name": "miniprogram",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "node simulator.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "miniprogram-automator": "^0.5.9"
+  }
+}
