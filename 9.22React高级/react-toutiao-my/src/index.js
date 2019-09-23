@@ -7,35 +7,9 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import List from './list';
 import * as components from './components/items';
-import Tabs from './tab';
-import TabContext from './tab-context';
-
-const TABS = [{
-    id: '__all__',
-    name: '推荐'
-}, {
-    id: 'video',
-    name: '视频'
-}];
-
-const ALL_TABS = [
-    {
-		id: '__all__',
-		name: '推荐'
-	},
-	{
-		id: 'video',
-		name: '视频'
-	},
-	{
-		id: 'sport',
-		name: '体育'
-	},
-	{
-		id: 'history',
-		name: '历史'
-	}
-]
+import Tabs from './tabs';
+import TabContext from './tabs/tab-context';
+import { TABS, ALL_TABS } from './config';
 
 class Main extends Component {
     constructor(props) {
@@ -57,26 +31,29 @@ class Main extends Component {
     }
 
     render() {
-        return (<div className="container">
-            <TabContext.Provider value={ALL_TABS}>
-                <Tabs tabs={TABS} />
-                <List
-                    dataSource={this.state.list}
-                    renderItem={item => {
-                        const type = item.type.replace(/^\w/, code => code.toUpperCase())
-                        const ItemComponent = components[type];
-                        return <ItemComponent
-                                onClick={this.skip} 
-                                data={item.data}
-                                />;
-                    }}
-                />
-            </TabContext.Provider>
-        </div>);
+        return (
+            <div className="container">
+                <TabContext.Provider value={ALL_TABS}>
+                    <Tabs tabs={TABS} />
+                    <List
+                        dataSource={this.state.list}
+                        renderItem={item => {
+                            const type = item.type.replace(/^\w/, code => code.toUpperCase());
+                            const ItemComponent = components[type];
+                            return <ItemComponent 
+                                    key={item.data.id}
+                                    onClick={this.skip} 
+                                    data={item.data}
+                                    />;
+                        }}
+                    />
+                </TabContext.Provider>
+            </div>
+        );
     }
 
     skip() {
-        console.log('hasClicked!!!')
+        console.log('hasClicked!!!');
     }
 }
 

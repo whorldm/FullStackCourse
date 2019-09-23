@@ -1,9 +1,14 @@
-.multiple-pic {
-	display: flex;
+.multiple-pic .title {
+    font-size: 17px;
+    margin: 10px auto;
 }
-.multiple-pic h3 {
-	flex: 1;
+
+.image-list {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-.multiple-pic img {
-	width: 33%;
+.image-list img {
+    width: 33%;
 }

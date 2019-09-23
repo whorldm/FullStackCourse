@@ -1,7 +1,13 @@
+/**
+ * @file Tabs component file
+ * @author caoyaqin
+ */
+
 import React, { Component, Suspense } from 'react';
+import style from './style.css';
 
 // 代码分割(异步组件)
-const SettingComponent = React.lazy(() => import('./setting'));
+const SettingComponent = React.lazy(() => import('../setting'));
 // const SettingComponent = React.lazy(() => {
 //     return import('./setting')
 //         .then(component => {
@@ -16,9 +22,9 @@ const SettingComponent = React.lazy(() => import('./setting'));
 
 export default class Tabs extends Component {
 
-    constructor(...args) {
+    constructor(props) {
 
-        super(...args);
+        super(props);
         
         this.state = {
 			showSetting: false
@@ -28,27 +34,39 @@ export default class Tabs extends Component {
     render() {
         const { tabs } = this.props;
         return (
-            <div>
-                {
-                    tabs.map(tab => {
-                        return <span>{tab.name}</span>
-                    })
-                }
-                <span onClick={() => this.onShowMore()}>+</span>
+            <div className="header">
+                <nav>
+                    <div className="nav-content">
+                    {
+                        tabs.map(tab => {
+                            return <span key={tab.id}>{tab.name}</span>
+                        })
+                    }
+                    </div>
+                    <a className="more-btn">
+                        <span className="cross" onClick={this.onShowMore}></span>
+                    </a>
+                </nav>
                 {
                     this.state.showSetting ? 
                     (<Suspense fallback={<div>Loading...</div>}>
-                        <SettingComponent />
+                        <SettingComponent onHideMore={this.onHideMore}/>
                     </Suspense>) : null
                 }
             </div>
         )
     }
 
-    onShowMore() {
+    onShowMore = () => {
         this.setState({
             showSetting: true
         });
+    }
+
+    onHideMore = () => {
+        this.setState({
+            showSetting: false
+        })
     }
 
 }

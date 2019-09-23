@@ -4,12 +4,13 @@
  */
 
 import React, {Component} from 'react';
+import style from './style.css';
 
 export default class List extends Component {
     render() {
         const { dataSource = [], renderItem } = this.props;
         return (
-            <div>
+            <div className="list-content">
                 {
                     dataSource.map(renderItem)
                 }
