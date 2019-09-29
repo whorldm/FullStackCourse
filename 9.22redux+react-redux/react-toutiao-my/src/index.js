@@ -11,7 +11,8 @@ import Tabs from './tabs';
 import TabContext from './tabs/tab-context';
 import { TABS, ALL_TABS } from './config';
 import store from './store';
-import { Provider, connect } from 'react-redux';
+// import { Provider, connect } from 'react-redux';
+import { Provider, connect } from './fake-react-redux';
 
 class Main extends Component {
     constructor(props) {
