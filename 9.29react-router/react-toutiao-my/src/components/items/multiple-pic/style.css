@@ -1,0 +1,14 @@
+.multiple-pic .title {
+    font-size: 17px;
+    margin: 10px auto;
+}
+
+.image-list {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.image-list img {
+    width: 33%;
+}

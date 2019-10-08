@@ -1,0 +1,47 @@
+import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
+import { BrowserRouter, Route, Link } from './fake-router';
+
+class Main extends Component {
+    render() {
+        // console.log('rending Mian', this.props)
+        return (
+            <div onClick={this.skip.bind(this)}>
+                我是首页
+                <Link to="/detail/i672763421225964391">跳转</Link>
+            </div>
+        )
+    }
+
+    skip() {
+        this.props.history.push('/detail/i672763421225964391');
+    }
+}
+
+class Detail extends Component {
+    render() {
+        console.log('detail-progress', this.props)
+        return (
+            <div>
+                详情页面
+            </div>
+        )
+    }
+}
+
+class AppContainer extends Component {
+    render() {
+        return (
+            <BrowserRouter>
+                <Route path="/home" component={Main} />
+                <Route path="/detail" component={Detail} />
+            </BrowserRouter>
+        )
+    }
+}
+import { format } from "path"
+
+ReactDOM.render(
+    <AppContainer />,
+    document.getElementById('app')
+)
