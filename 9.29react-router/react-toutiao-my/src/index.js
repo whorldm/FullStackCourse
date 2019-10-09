@@ -15,6 +15,7 @@ import store from './store';
 import { Provider, connect } from 'react-redux';
 // import { Provider, connect } from './fake-react-redux';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
+// import { BrowserRouter, Route, Switch } from './fake-router';
 
 class Main extends Component {
     constructor(props) {
@@ -22,7 +23,7 @@ class Main extends Component {
         this.state = {
             list: []
         };
-        console.log('this!!!!!');
+        this.uniqueStr = 0;
         this.onReachBottom();
     }
 
@@ -77,6 +78,11 @@ class Main extends Component {
         // 版本三：
         return this.getList()
             .then(({ data }) => {
+                // 处理下拉加载相同数据时id值相同的警告
+                data.forEach(item => {
+                    item.data.id += this.uniqueStr;
+                    this.uniqueStr ++;
+                });
                 return {
                     type: 'PUSH_LIST',
                     data
@@ -150,23 +156,12 @@ const App = connect(
                 dispatch(task);
             }
         };
-    },
-
-    function mergeProps(stateProps, dispatchProps, ownProps) {
-        console.log('stateProps, dispatchProps, ownProps',stateProps, dispatchProps, ownProps)
-        return {...stateProps, ...dispatchProps, ...ownProps};
     }
 )(Main);
 
-class Test extends Component {
-    render () {
-        return (<div>Test</div>)
-    }
-}
-
 const AppContainer = () => {
 
-    const TopBar = () => {
+    const NoMatch = () => {
 		return (<div>我是404</div>)
     };
     
@@ -175,7 +170,7 @@ const AppContainer = () => {
             <Switch>
 				<Route path="/home" component={App} />
 				<Route path="/detail/:id" component={Detail} />
-				<Route component={TopBar} />
+				<Route component={NoMatch} />
 			</Switch>
         </BrowserRouter>
     )

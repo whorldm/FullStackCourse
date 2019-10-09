@@ -5,12 +5,13 @@
  */
 
 import React, { Component } from 'react';
+import pathToRegexp from "path-to-regexp";
 
 // 监听器
 let eventEmitter = {
     listener: [],
     notify(...args) {
-        this.listener.forEach(fn => fn(args));
+        this.listener.forEach(fn => fn(...args));
     },
     listen(func) {
         this.listener.push(func);
@@ -123,7 +124,14 @@ export class Router extends Component {
     render() {
         const contextValue = {
             history: this.props.history,
-            location: this.state.location
+            location: this.state.location,
+            match: {
+                url: undefined,
+                path: undefined,
+                params: {
+                    id: '123321123321'
+                }
+            }
         };
         
         return (
@@ -155,8 +163,8 @@ export class BrowserRouter extends Component {
  * @param {String} pathname 
  * @param {String} location 
  */
-const matcher = (pathname, location) => {
-    return (new RegExp(pathname)).exec(location.pathname);
+const matchPath = (pathname, location) => {
+    return (pathToRegexp(pathname)).exec(location.pathname);
 };
 
 export class Route extends Component {
@@ -164,11 +172,10 @@ export class Route extends Component {
     static contextType = RouterContext;
 
     render() {
-        console.log('i got ::', this.context, this.props);
         
         const DynamicComponent = this.props.component;
 
-        let math = matcher(this.props.path, this.context.location);
+        let math = matchPath(this.props.path, this.context.location);
 
         return (
             <React.Fragment>
@@ -181,7 +188,38 @@ export class Route extends Component {
 };
 
 export class Switch extends Component {
-
+    render() {
+        return (
+            <RouterContext.Consumer>
+                {
+                    context => {
+                        const location = this.props.location || context.location;
+                        let element, match;
+                        React.Children.forEach(this.props.children, child => {
+                            // child为Switch里面嵌套的route组件
+                            // match如果没有匹配到则默认渲染最后一个
+                            console.log('match', match)
+                            if (!match && React.isValidElement(child)) {
+                                element = child;
+                
+                                // form用于<redirect form="..." ... >
+                                const path = child.props.path || child.props.from;
+                                console.log('path', path, 'location', location)
+                                console.log('mather----', matchPath(path, location))
+                                // 匹配的match
+                                match = path ? matchPath(path, location) : '/404';
+                                console.log('new match', match)
+                            }
+                        });
+                
+                        return match  // 添加computedMatch props为match
+                            ? React.cloneElement(element, { location, computedMatch: match })
+                            : null;
+                    }
+                }
+            </RouterContext.Consumer>
+        );
+    }
 };
 
 export class Link extends Component {
