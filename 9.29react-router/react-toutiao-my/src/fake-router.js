@@ -6,6 +6,7 @@
 
 import React, { Component } from 'react';
 import pathToRegexp from "path-to-regexp";
+import hoistStatics from "hoist-non-react-statics";
 
 // 监听器
 let eventEmitter = {
@@ -238,3 +239,25 @@ export class Link extends Component {
         );
     }
 };
+
+export const withRouter = (Component) => {
+    const C = props => {
+        const { wrappedComponentRef, ...remainProps } = props;
+
+        return (
+            <RouterContext.Consumer>
+                {
+                    context => {
+                        return (
+                            <Component {...remainProps} {...context} ref={wrappedComponentRef} />
+                        );
+                    }
+                }
+            </RouterContext.Consumer>
+        );
+    };
+
+    C.WrappedComponet = Component;
+    
+    return hoistStatics(C, Component);
+}
